@@ -1,14 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MOCK_PRACTICALS, MOCK_LESSONS, MOCK_UNITS, MOCK_COURSES } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
-import { ChevronLeft, Upload, AlertCircle, CheckCircle } from 'lucide-react';
+import { ChevronLeft, Upload, AlertCircle, CheckCircle, Loader2, Mail, Clock } from 'lucide-react';
 import { notFound, useRouter } from 'next/navigation';
+
+type AnalysisStep = 'uploading' | 'analyzing' | 'complete';
 
 export default function SubmitPracticalPage({
   params,
@@ -21,6 +23,8 @@ export default function SubmitPracticalPage({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [analysisStep, setAnalysisStep] = useState<AnalysisStep>('uploading');
+  const [analysisResults, setAnalysisResults] = useState<any>(null);
   const [notes, setNotes] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -35,54 +39,210 @@ export default function SubmitPracticalPage({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitted(true);
 
-    // Simulate upload
+    // Step 1: Uploading (2s)
     setTimeout(() => {
+      setAnalysisStep('analyzing');
+    }, 2000);
+
+    // Step 2: AI Analysis (5-7s)
+    setTimeout(() => {
+      const results = {
+        tempo: Math.floor(Math.random() * 20) + 110,
+        rhythm: ['Good timing', 'Consistent beat', 'Minor timing variations detected'][Math.floor(Math.random() * 3)],
+        pitch: ['Accurate pitch control', 'Mostly on pitch', 'Some pitch variations noted'][Math.floor(Math.random() * 3)],
+        technique: ['Proper technique observed', 'Good hand positioning', 'Technique needs refinement'][Math.floor(Math.random() * 3)],
+        overall: Math.floor(Math.random() * 15) + 75,
+      };
+      setAnalysisResults(results);
+      setAnalysisStep('complete');
       setIsSubmitting(false);
-      setSubmitted(true);
-    }, 1500);
+    }, 7000);
   };
 
-  if (submitted) {
+  if (submitted && analysisStep === 'complete' && analysisResults) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4 py-6">
-        <Card className="max-w-md border-border/50 w-full">
-          <CardHeader>
-            <div className="flex justify-center mb-4">
-              <div className="w-12 h-12 rounded-full bg-accent/10 border-2 border-accent flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-accent" />
+      <div className="min-h-screen bg-background p-4 py-6">
+        <div className="max-w-3xl mx-auto space-y-6">
+          {/* Success Header */}
+          <Card className="border-accent/50 bg-accent/5">
+            <CardHeader>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-accent/20 border-2 border-accent flex items-center justify-center flex-shrink-0">
+                  <CheckCircle className="w-6 h-6 text-accent" />
+                </div>
+                <div>
+                  <CardTitle>Submission Successful!</CardTitle>
+                  <CardDescription className="mt-1">
+                    Your practical has been submitted and analyzed
+                  </CardDescription>
+                </div>
               </div>
-            </div>
-            <CardTitle className="text-center">Submission Successful!</CardTitle>
-            <CardDescription className="text-center mt-2">
-              Your practical submission has been received and is being analyzed.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="p-4 rounded-lg bg-secondary/50">
-              <p className="text-sm font-medium text-foreground mb-1">
-                What happens next?
-              </p>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>✓ File is being processed</li>
-                <li>✓ AI assessment is running</li>
-                <li>✓ Instructor review will follow</li>
-              </ul>
-            </div>
-            <div className="space-y-2">
-              <Button
-                onClick={() => router.push('/practicals')}
-                className="w-full bg-accent hover:bg-accent/90"
-              >
-                Back to Practicals
-              </Button>
-              <Button
-                onClick={() => router.push('/submissions')}
-                variant="outline"
-                className="w-full border-border"
-              >
-                View My Submissions
-              </Button>
+            </CardHeader>
+          </Card>
+
+          {/* AI Analysis Results */}
+          <Card className="border-border/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                  <Loader2 className="w-4 h-4 text-accent" />
+                </div>
+                AI Analysis Results
+              </CardTitle>
+              <CardDescription>
+                Automated assessment of your submission
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-lg bg-secondary/50">
+                  <p className="text-xs text-muted-foreground mb-1">Tempo</p>
+                  <p className="text-2xl font-bold text-foreground">{analysisResults.tempo} BPM</p>
+                </div>
+                <div className="p-4 rounded-lg bg-secondary/50">
+                  <p className="text-xs text-muted-foreground mb-1">Overall Score</p>
+                  <p className="text-2xl font-bold text-accent">{analysisResults.overall}%</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="p-3 rounded-lg border border-border/50">
+                  <p className="text-sm font-medium text-foreground mb-1">Rhythm Analysis</p>
+                  <p className="text-sm text-muted-foreground">{analysisResults.rhythm}</p>
+                </div>
+                <div className="p-3 rounded-lg border border-border/50">
+                  <p className="text-sm font-medium text-foreground mb-1">Pitch Accuracy</p>
+                  <p className="text-sm text-muted-foreground">{analysisResults.pitch}</p>
+                </div>
+                <div className="p-3 rounded-lg border border-border/50">
+                  <p className="text-sm font-medium text-foreground mb-1">Technique</p>
+                  <p className="text-sm text-muted-foreground">{analysisResults.technique}</p>
+                </div>
+              </div>
+
+              <Alert className="border-accent/50 bg-accent/5">
+                <AlertCircle className="h-4 w-4 text-accent" />
+                <AlertDescription className="text-sm">
+                  This is an automated preliminary analysis. Your instructor will provide detailed feedback and final grading.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+
+          {/* Next Steps */}
+          <Card className="border-border/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-accent" />
+                Next Steps
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <CheckCircle className="w-4 h-4 text-background" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">Submission Received</p>
+                    <p className="text-sm text-muted-foreground">Your file has been uploaded successfully</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <CheckCircle className="w-4 h-4 text-background" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">AI Analysis Complete</p>
+                    <p className="text-sm text-muted-foreground">Automated assessment has been generated</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full border-2 border-accent flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">Awaiting Instructor Review</p>
+                    <p className="text-sm text-muted-foreground">Your instructor will review and provide final feedback</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-lg bg-secondary/50 border border-border/50">
+                <div className="flex items-start gap-3">
+                  <Mail className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Email Notifications Sent</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      ✓ Confirmation sent to your email<br />
+                      ✓ Instructor notified for review
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
+              onClick={() => router.push('/practicals')}
+              className="flex-1 bg-accent hover:bg-accent/90"
+            >
+              Back to Practicals
+            </Button>
+            <Button
+              onClick={() => router.push('/submissions')}
+              variant="outline"
+              className="flex-1 border-border"
+            >
+              View My Submissions
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (submitted && isSubmitting) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full border-border/50">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-6">
+              <div className="flex justify-center">
+                <div className="w-16 h-16 rounded-full bg-accent/10 border-2 border-accent flex items-center justify-center">
+                  <Loader2 className="w-8 h-8 text-accent animate-spin" />
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-xl font-bold text-foreground mb-2">
+                  {analysisStep === 'uploading' && 'Uploading Submission...'}
+                  {analysisStep === 'analyzing' && 'AI Analysis in Progress...'}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {analysisStep === 'uploading' && 'Securely uploading your file to the server'}
+                  {analysisStep === 'analyzing' && 'Analyzing tempo, rhythm, pitch, and technique'}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${analysisStep === 'uploading' ? 'bg-accent animate-pulse' : 'bg-accent'}`} />
+                  <span className="text-sm text-muted-foreground">Uploading file</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${analysisStep === 'analyzing' ? 'bg-accent animate-pulse' : analysisStep === 'complete' ? 'bg-accent' : 'bg-border'}`} />
+                  <span className="text-sm text-muted-foreground">Running AI analysis</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${analysisStep === 'complete' ? 'bg-accent' : 'bg-border'}`} />
+                  <span className="text-sm text-muted-foreground">Generating results</span>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>

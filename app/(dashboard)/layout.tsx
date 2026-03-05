@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { MainNav } from '@/components/nav/main-nav';
 import { Sidebar } from '@/components/nav/sidebar';
 import { Footer } from '@/components/nav/footer';
+import { Toaster } from '@/components/ui/toaster';
 import { useEffect, useState } from 'react';
 
 export default function DashboardLayout({
@@ -64,6 +65,7 @@ export default function DashboardLayout({
         </main>
         <Footer />
       </div>
+      <Toaster />
     </div>
   );
 }

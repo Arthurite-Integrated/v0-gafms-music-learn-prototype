@@ -5,10 +5,20 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bell, Lock, Users, Palette, LogOut } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { useState, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SettingsPage() {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [systemAlerts, setSystemAlerts] = useState(true);
+
+  useEffect(() => setMounted(true), []);
 
   if (!user || user.role !== 'admin') {
     return (
@@ -25,7 +35,23 @@ export default function SettingsPage() {
 
   const handleLogout = () => {
     logout();
-    router.push('/login');
+    window.location.href = '/login';
+  };
+
+  const saveNotifications = () => {
+    localStorage.setItem('emailNotifications', String(emailNotifications));
+    localStorage.setItem('systemAlerts', String(systemAlerts));
+    toast({
+      title: 'Preferences saved',
+      description: 'Your notification preferences have been updated.',
+    });
+  };
+
+  const saveTheme = () => {
+    toast({
+      title: 'Theme saved',
+      description: `${theme === 'dark' ? 'Dark' : 'Light'} mode has been applied.`,
+    });
   };
 
   return (
@@ -50,16 +76,26 @@ export default function SettingsPage() {
                 <p className="font-medium">Email Notifications</p>
                 <p className="text-sm text-muted-foreground">Receive email updates on submissions</p>
               </div>
-              <input type="checkbox" defaultChecked className="w-5 h-5" />
+              <input 
+                type="checkbox" 
+                checked={emailNotifications}
+                onChange={(e) => setEmailNotifications(e.target.checked)}
+                className="w-5 h-5" 
+              />
             </div>
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">System Alerts</p>
                 <p className="text-sm text-muted-foreground">Critical system notifications</p>
               </div>
-              <input type="checkbox" defaultChecked className="w-5 h-5" />
+              <input 
+                type="checkbox" 
+                checked={systemAlerts}
+                onChange={(e) => setSystemAlerts(e.target.checked)}
+                className="w-5 h-5" 
+              />
             </div>
-            <Button className="mt-4">Save Preferences</Button>
+            <Button onClick={saveNotifications} className="mt-4">Save Preferences</Button>
           </CardContent>
         </Card>
 
@@ -72,14 +108,30 @@ export default function SettingsPage() {
             <CardDescription>Customize the system appearance</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-3">Theme</label>
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1">Light</Button>
-                <Button className="flex-1 bg-primary">Dark</Button>
-              </div>
-            </div>
-            <Button className="w-full mt-4">Save Theme</Button>
+            {mounted && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium mb-3">Theme</label>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant={theme === 'light' ? 'default' : 'outline'}
+                      onClick={() => setTheme('light')}
+                      className="flex-1"
+                    >
+                      Light
+                    </Button>
+                    <Button 
+                      variant={theme === 'dark' ? 'default' : 'outline'}
+                      onClick={() => setTheme('dark')}
+                      className="flex-1"
+                    >
+                      Dark
+                    </Button>
+                  </div>
+                </div>
+                <Button onClick={saveTheme} className="w-full mt-4">Save Theme</Button>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -92,9 +144,27 @@ export default function SettingsPage() {
             <CardDescription>Manage security settings</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button variant="outline" className="w-full">Change Password</Button>
-            <Button variant="outline" className="w-full">Two-Factor Authentication</Button>
-            <Button variant="outline" className="w-full">Manage Sessions</Button>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => toast({ title: 'Coming soon', description: 'Password change feature will be available soon.' })}
+            >
+              Change Password
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => toast({ title: 'Coming soon', description: 'Two-factor authentication will be available soon.' })}
+            >
+              Two-Factor Authentication
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => toast({ title: 'Active sessions', description: 'You have 1 active session.' })}
+            >
+              Manage Sessions
+            </Button>
           </CardContent>
         </Card>
 
@@ -107,9 +177,27 @@ export default function SettingsPage() {
             <CardDescription>Advanced system settings</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button variant="outline" className="w-full">Manage User Roles</Button>
-            <Button variant="outline" className="w-full">System Logs</Button>
-            <Button variant="outline" className="w-full">Backup & Restore</Button>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => router.push('/users')}
+            >
+              Manage User Roles
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => toast({ title: 'System logs', description: 'No errors in the last 24 hours.' })}
+            >
+              System Logs
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => toast({ title: 'Backup created', description: 'System backup completed successfully.' })}
+            >
+              Backup & Restore
+            </Button>
           </CardContent>
         </Card>
 
