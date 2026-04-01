@@ -4,10 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { MOCK_PRACTICALS, MOCK_LESSONS, MOCK_UNITS, MOCK_COURSES } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
-import { ChevronLeft, Upload, AlertCircle, CheckCircle, Loader2, Mail, Clock } from 'lucide-react';
+import { ChevronLeft, Upload, AlertCircle, CheckCircle, Loader2, Mail, Sparkles, TrendingUp, Target, Music, Star } from 'lucide-react';
 import { notFound, useRouter } from 'next/navigation';
 
 type AnalysisStep = 'uploading' | 'analyzing' | 'complete';
@@ -48,12 +50,32 @@ export default function SubmitPracticalPage({
 
     // Step 2: AI Analysis (5-7s)
     setTimeout(() => {
+      const technical = Math.floor(Math.random() * 18) + 74;
+      const musicality = Math.floor(Math.random() * 18) + 72;
+      const rhythm = Math.floor(Math.random() * 18) + 76;
+      const tonal = Math.floor(Math.random() * 18) + 73;
+      const overall = Math.round((technical + musicality + rhythm + tonal) / 4);
+      const grade = overall >= 90 ? 'A' : overall >= 80 ? 'B' : overall >= 70 ? 'C' : 'D';
+      const gradeLabel = overall >= 90 ? 'Excellent' : overall >= 80 ? 'Good' : overall >= 70 ? 'Satisfactory' : 'Needs Improvement';
       const results = {
+        technicalAccuracy: technical,
+        musicality,
+        rhythm,
+        tonalQuality: tonal,
+        overall,
+        grade,
+        gradeLabel,
         tempo: Math.floor(Math.random() * 20) + 110,
-        rhythm: ['Good timing', 'Consistent beat', 'Minor timing variations detected'][Math.floor(Math.random() * 3)],
-        pitch: ['Accurate pitch control', 'Mostly on pitch', 'Some pitch variations noted'][Math.floor(Math.random() * 3)],
-        technique: ['Proper technique observed', 'Good hand positioning', 'Technique needs refinement'][Math.floor(Math.random() * 3)],
-        overall: Math.floor(Math.random() * 15) + 75,
+        feedback: overall >= 85
+          ? 'Strong overall performance with clear technical command. Your tone production is consistent and your phrasing shows musical maturity. Continue building on this solid foundation.'
+          : overall >= 75
+          ? 'Good effort with a generally solid performance. Some areas of technique are well-developed; focus on consistency across the full range of the instrument.'
+          : 'Commendable attempt. The fundamentals are present but require more focused practice. Pay particular attention to breath support and evenness of tone.',
+        improvements: overall >= 85
+          ? ['Explore more expressive dynamic range in lyrical passages', 'Work on smooth legato transitions between registers', 'Develop musical phrasing beyond technical execution']
+          : overall >= 75
+          ? ['Practice long tones daily to improve tonal consistency', 'Focus on upper register stability with targeted exercises', 'Record yourself and listen back to identify pitch inconsistencies']
+          : ['Strengthen breath support with daily breathing exercises', 'Use a tuner consistently during practice sessions', 'Slow down difficult passages and build speed gradually'],
       };
       setAnalysisResults(results);
       setAnalysisStep('complete');
@@ -65,139 +87,159 @@ export default function SubmitPracticalPage({
     return (
       <div className="min-h-screen bg-background p-4 py-6">
         <div className="max-w-3xl mx-auto space-y-6">
+
           {/* Success Header */}
-          <Card className="border-accent/50 bg-accent/5">
+          <Card className="border-green-500/40 bg-green-500/5">
             <CardHeader>
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-accent/20 border-2 border-accent flex items-center justify-center flex-shrink-0">
-                  <CheckCircle className="w-6 h-6 text-accent" />
+                <div className="w-12 h-12 rounded-full bg-green-500/20 border-2 border-green-500 flex items-center justify-center shrink-0">
+                  <CheckCircle className="w-6 h-6 text-green-500" />
                 </div>
                 <div>
-                  <CardTitle>Submission Successful!</CardTitle>
+                  <CardTitle className="text-foreground">Submission Graded by AI</CardTitle>
                   <CardDescription className="mt-1">
-                    Your practical has been submitted and analyzed
+                    Your practical has been submitted and autonomously assessed
                   </CardDescription>
                 </div>
+                <Badge className="ml-auto bg-accent/20 text-accent border-accent/30 shrink-0 gap-1.5">
+                  <Sparkles className="w-3 h-3" />
+                  AI Graded
+                </Badge>
               </div>
             </CardHeader>
           </Card>
 
-          {/* AI Analysis Results */}
-          <Card className="border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
-                  <Loader2 className="w-4 h-4 text-accent" />
+          {/* Score Hero */}
+          <Card className="border-border/50 overflow-hidden">
+            <div className="bg-gradient-to-br from-accent/10 via-accent/5 to-transparent p-6">
+              <div className="flex flex-col sm:flex-row items-center gap-6">
+                <div className="text-center shrink-0">
+                  <div className="w-28 h-28 rounded-full border-4 border-accent/40 bg-accent/10 flex flex-col items-center justify-center">
+                    <span className="text-4xl font-black text-accent">{analysisResults.grade}</span>
+                    <span className="text-xs text-muted-foreground font-medium">{analysisResults.overall}%</span>
+                  </div>
+                  <p className="mt-2 text-sm font-semibold text-foreground">{analysisResults.gradeLabel}</p>
                 </div>
-                AI Analysis Results
-              </CardTitle>
-              <CardDescription>
-                Automated assessment of your submission
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 rounded-lg bg-secondary/50">
-                  <p className="text-xs text-muted-foreground mb-1">Tempo</p>
-                  <p className="text-2xl font-bold text-foreground">{analysisResults.tempo} BPM</p>
-                </div>
-                <div className="p-4 rounded-lg bg-secondary/50">
-                  <p className="text-xs text-muted-foreground mb-1">Overall Score</p>
-                  <p className="text-2xl font-bold text-accent">{analysisResults.overall}%</p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="p-3 rounded-lg border border-border/50">
-                  <p className="text-sm font-medium text-foreground mb-1">Rhythm Analysis</p>
-                  <p className="text-sm text-muted-foreground">{analysisResults.rhythm}</p>
-                </div>
-                <div className="p-3 rounded-lg border border-border/50">
-                  <p className="text-sm font-medium text-foreground mb-1">Pitch Accuracy</p>
-                  <p className="text-sm text-muted-foreground">{analysisResults.pitch}</p>
-                </div>
-                <div className="p-3 rounded-lg border border-border/50">
-                  <p className="text-sm font-medium text-foreground mb-1">Technique</p>
-                  <p className="text-sm text-muted-foreground">{analysisResults.technique}</p>
+                <div className="flex-1 space-y-3 w-full">
+                  {[
+                    { label: 'Technical Accuracy', value: analysisResults.technicalAccuracy, icon: Target },
+                    { label: 'Musicality', value: analysisResults.musicality, icon: Music },
+                    { label: 'Rhythm', value: analysisResults.rhythm, icon: TrendingUp },
+                    { label: 'Tonal Quality', value: analysisResults.tonalQuality, icon: Star },
+                  ].map(({ label, value, icon: Icon }) => (
+                    <div key={label}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                          <Icon className="w-3.5 h-3.5 text-accent" />
+                          {label}
+                        </span>
+                        <span className="text-xs font-bold text-accent">{value}%</span>
+                      </div>
+                      <Progress value={value} className="h-1.5" />
+                    </div>
+                  ))}
                 </div>
               </div>
-
-              <Alert className="border-accent/50 bg-accent/5">
-                <AlertCircle className="h-4 w-4 text-accent" />
-                <AlertDescription className="text-sm">
-                  This is an automated preliminary analysis. Your instructor will provide detailed feedback and final grading.
-                </AlertDescription>
-              </Alert>
-            </CardContent>
+            </div>
           </Card>
 
-          {/* Next Steps */}
+          {/* AI Feedback */}
           <Card className="border-border/50">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-accent" />
-                Next Steps
+              <CardTitle className="flex items-center gap-2 text-base">
+                <div className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-accent" />
+                </div>
+                AI Feedback
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <CheckCircle className="w-4 h-4 text-background" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">Submission Received</p>
-                    <p className="text-sm text-muted-foreground">Your file has been uploaded successfully</p>
-                  </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">{analysisResults.feedback}</p>
+              <div className="flex items-center gap-2 pt-1">
+                <div className="p-2 rounded-md bg-secondary/50 border border-border/30">
+                  <p className="text-xs text-muted-foreground">Detected Tempo</p>
+                  <p className="text-lg font-bold text-foreground">{analysisResults.tempo} <span className="text-xs font-normal text-muted-foreground">BPM</span></p>
                 </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <CheckCircle className="w-4 h-4 text-background" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">AI Analysis Complete</p>
-                    <p className="text-sm text-muted-foreground">Automated assessment has been generated</p>
-                  </div>
+                <div className="p-2 rounded-md bg-secondary/50 border border-border/30">
+                  <p className="text-xs text-muted-foreground">Overall Score</p>
+                  <p className="text-lg font-bold text-accent">{analysisResults.overall}<span className="text-xs font-normal text-muted-foreground">%</span></p>
                 </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full border-2 border-accent flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">Awaiting Instructor Review</p>
-                    <p className="text-sm text-muted-foreground">Your instructor will review and provide final feedback</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-lg bg-secondary/50 border border-border/50">
-                <div className="flex items-start gap-3">
-                  <Mail className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Email Notifications Sent</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      ✓ Confirmation sent to your email<br />
-                      ✓ Instructor notified for review
-                    </p>
-                  </div>
+                <div className="p-2 rounded-md bg-secondary/50 border border-border/30">
+                  <p className="text-xs text-muted-foreground">Final Grade</p>
+                  <p className="text-lg font-bold text-foreground">{analysisResults.grade}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Action Buttons */}
+          {/* Areas for Improvement */}
+          <Card className="border-accent/20 bg-accent/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <TrendingUp className="w-5 h-5 text-accent" />
+                Areas for Improvement
+              </CardTitle>
+              <CardDescription>Personalised recommendations from your AI assessment</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3">
+                {analysisResults.improvements.map((item: string, idx: number) => (
+                  <li key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-background/60 border border-border/30">
+                    <div className="w-5 h-5 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="text-xs font-bold text-accent">{idx + 1}</span>
+                    </div>
+                    <span className="text-sm text-foreground">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+
+          {/* Timeline */}
+          <Card className="border-border/50">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shrink-0 mt-0.5">
+                  <CheckCircle className="w-3.5 h-3.5 text-white" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground text-sm">Submission Received</p>
+                  <p className="text-xs text-muted-foreground">File uploaded successfully</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shrink-0 mt-0.5">
+                  <CheckCircle className="w-3.5 h-3.5 text-white" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground text-sm">AI Analysis Complete</p>
+                  <p className="text-xs text-muted-foreground">Performance assessed across all criteria</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shrink-0 mt-0.5">
+                  <CheckCircle className="w-3.5 h-3.5 text-white" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground text-sm">Grading Complete</p>
+                  <p className="text-xs text-muted-foreground">Your grade and feedback are ready</p>
+                </div>
+              </div>
+              <div className="mt-4 p-3 rounded-lg bg-secondary/50 border border-border/50 flex items-start gap-3">
+                <Mail className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                <p className="text-xs text-muted-foreground">
+                  ✓ Grade confirmation sent to your email
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button
-              onClick={() => router.push('/practicals')}
-              className="flex-1 bg-accent hover:bg-accent/90"
-            >
+            <Button onClick={() => router.push('/practicals')} className="flex-1 bg-accent hover:bg-accent/90">
               Back to Practicals
             </Button>
-            <Button
-              onClick={() => router.push('/submissions')}
-              variant="outline"
-              className="flex-1 border-border"
-            >
+            <Button onClick={() => router.push('/submissions')} variant="outline" className="flex-1 border-border">
               View My Submissions
             </Button>
           </div>
@@ -395,9 +437,9 @@ export default function SubmitPracticalPage({
                   What happens next?
                 </p>
                 <ul className="text-xs text-muted-foreground space-y-1">
-                  <li>• AI analysis runs automatically</li>
-                  <li>• Instructor reviews submission</li>
-                  <li>• You receive feedback & grade</li>
+                  <li>• File is uploaded securely</li>
+                  <li>• AI analyses your performance</li>
+                  <li>• Grade & feedback delivered instantly</li>
                 </ul>
               </div>
             </CardContent>
